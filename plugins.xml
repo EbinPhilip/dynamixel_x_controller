@@ -1,0 +1,8 @@
+<library path="lib/libdynamixel_x_controller">
+    <class type="Dynamixel_X::Dynamixel_X_Controller_Config_Parser" base_class_type="Actuator_Config_Parser">
+        <description>Plugin for parsing dynamixel x controller config.</description>
+    </class>
+    <class type="Dynamixel_X::Dynamixel_X_Actuator_Config_Parser" base_class_type="Actuator_Config_Parser">
+        <description>Plugin for parsing dynamixel x actuator config.</description>
+    </class>
+</library>

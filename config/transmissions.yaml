@@ -1,0 +1,9 @@
+transmissions:
+  transmission_3:
+    joints:
+      - joint3
+    actuators:
+      - dynx_1
+    type: transmission_interface::SimpleTransmission
+
+

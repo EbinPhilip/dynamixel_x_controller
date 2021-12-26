@@ -1,0 +1,18 @@
+actuators:
+  - package: dynamixel_x_controller
+    class: Dynamixel_X::Dynamixel_X_Actuator_Config_Parser
+    config:
+      dynx_1:
+        servo_id: 1
+        controller_name: dynx_controller
+        cw_limit_deg: -180.0
+        ccw_limit_deg: 180.0
+
+controllers:
+  - package: dynamixel_x_controller
+    class: Dynamixel_X::Dynamixel_X_Controller_Config_Parser
+    config:
+      dynx_controller:
+        controller_id: 1
+        port: /dev/u2d2
+        baud_rate: 57600

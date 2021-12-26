@@ -1,0 +1,4 @@
+joints:
+  joint3:
+    type: PositionControlledJoint
+    default_rpm: 20.0
