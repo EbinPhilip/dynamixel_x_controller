@@ -17,7 +17,8 @@ struct Dynamixel_X_Actuator_Properties : public Actuator_Properties
     Dynamixel_X_Actuator_Properties(const std::string& name, uint8_t id_number)
         : servo_id(id_number),
           error_code(0),
-          bad_response_count(0)
+          bad_response_count(0),
+          max_effort_value(1000.0)
     {
         actuator_name =  name;
         actuator_type = ACTUATOR_NAME_STR;
@@ -26,6 +27,8 @@ struct Dynamixel_X_Actuator_Properties : public Actuator_Properties
     uint8_t servo_id;
     RUnits::Degrees cw_limit_deg;
     RUnits::Degrees ccw_limit_deg;
+    RUnits::Degrees zero_deg;
+    double max_effort_value;
 
     uint8_t bad_response_count;
     uint8_t error_code;

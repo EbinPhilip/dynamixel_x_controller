@@ -5,8 +5,10 @@ actuators:
       dynx_1:
         servo_id: 1
         controller_name: dynx_controller
-        cw_limit_deg: -180.0
-        ccw_limit_deg: 180.0
+        zero_deg: 0.0
+        cw_limit_deg: 0.0
+        ccw_limit_deg: 360.0
+        max_effort_value: 1000.0
 
 controllers:
   - package: dynamixel_x_controller

@@ -7,6 +7,7 @@
 #include <memory>
 #include <stdexcept>
 #include <algorithm>
+#include <cmath>
 
 using namespace XmlRpc;
 using namespace Dynamixel_X;
@@ -33,7 +34,19 @@ void Dynamixel_X_Actuator_Config_Parser::parseConfig(XmlRpc::XmlRpcValue& config
         (actuator_name, actuator_id);
         actuator->ccw_limit_deg = static_cast<double>(it->second["ccw_limit_deg"]);
         actuator->cw_limit_deg = static_cast<double>(it->second["cw_limit_deg"]);
-        
+        if (it->second.hasMember("zero_deg"))
+        {
+            actuator->zero_deg = static_cast<double>(it->second["zero_deg"]);
+        }
+        else
+        {
+            actuator->zero_deg = 180.0;
+        }
+        if (it->second.hasMember("max_effort_value"))
+        {
+            actuator->max_effort_value = fabs(static_cast<double>(it->second["max_effort_value"]));
+        }
+
         auto controller_it = controller_map->find(actuator_controller);
         if (controller_it == controller_map->end())
         {
