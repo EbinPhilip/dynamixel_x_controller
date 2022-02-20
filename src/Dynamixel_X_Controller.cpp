@@ -58,8 +58,8 @@ void Dynamixel_X_Controller::addServo(Actuator_Properties_Ptr actuator)
     _handleErrorResponse(packet_handler_->ping(port_handler_.get(),
                                             actuator->servo_id, &dxl_model_number, &dxl_error),
                                             dxl_error);
-    Pos_Unit ccw_limit = RUnits::Degrees(actuator->ccw_limit_deg.Value() + zero_degree.Value());
-    Pos_Unit cw_limit = RUnits::Degrees(actuator->cw_limit_deg.Value() + zero_degree.Value());
+    Pos_Unit ccw_limit = RUnits::Degrees(actuator->ccw_limit_deg.Value() + actuator->zero_deg.Value());
+    Pos_Unit cw_limit = RUnits::Degrees(actuator->cw_limit_deg.Value() + actuator->zero_deg.Value());
 
     _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, TORQUE_ENABLE_ADDRESS,
@@ -127,12 +127,22 @@ void Dynamixel_X_Controller::readState()
         else
         {
             servo.second->bad_response_count = 0;
-            servo.second->state.effort = sync_read_.getData(servo.second->servo_id, PRESENT_LOAD_ADDRESS, 2);
+            uint16_t effort_register = (uint16_t)sync_read_.getData(servo.second->servo_id, PRESENT_LOAD_ADDRESS, 2);
+            double effort = 0.0;
+            if (effort_register>>15) // if negative, take 2s complement of register value
+            {
+                effort = ((~effort_register & 0xFFFF) + 1) * -1;
+            }
+            else
+            {
+                effort = effort_register;
+            }
+            servo.second->state.effort = effort/servo.second->max_effort_value;
             Pos_Unit pos = sync_read_.getData(servo.second->servo_id, PRESENT_POSITION_ADDRESS, 4);
             RUnits::Degrees pos_deg = pos;
             RUnits::RPM rpm = Speed_Unit(sync_read_.getData(servo.second->servo_id, PRESENT_VELOCITY_ADDRESS, 4));
             
-            pos_deg = pos_deg.Value() - zero_degree.Value();
+            pos_deg = pos_deg.Value() - servo.second->zero_deg.Value();
             
             double position = static_cast<RUnits::Radians>(pos_deg).Value();
             double speed = static_cast<RUnits::Radians_Per_Sec>(rpm).Value();
@@ -166,7 +176,7 @@ void Dynamixel_X_Controller::writeCommand()
         RUnits::Degrees pos_deg = RUnits::Radians(servo.second->command.position);
         RUnits::RPM speed_rpm = RUnits::Radians_Per_Sec(fabs(servo.second->command.velocity));
         
-        pos_deg = zero_degree.Value() + pos_deg.Value();
+        pos_deg = servo.second->zero_deg.Value() + pos_deg.Value();
 
         Pos_Unit pos = pos_deg;
         Speed_Unit speed = speed_rpm;
