@@ -295,14 +295,23 @@ void Dynamixel_X_Controller::_enableActuators()
     for (auto& servo : servo_map_)
     {
         uint8_t dxl_error = 0;
-        _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+        try
+        {
+            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             servo.second->servo_id, TORQUE_ENABLE_ADDRESS,
                                             1, &dxl_error),
                                             dxl_error);
-        _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             servo.second->servo_id, LED_ADDRESS,
                                             1, &dxl_error),
                                             dxl_error);
+             actuator_enabled_status_ = true;
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR("%s: enable failed! Reason:%s", controller_name_, e.what());
+            stop_flag_ = true;
+        }
+        
     }
-    actuator_enabled_status_ = true;
 }
