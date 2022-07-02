@@ -53,14 +53,14 @@ Pos_Unit::operator RUnits::Degrees() const
 
 Speed_Unit::Speed_Unit(RUnits::RPM speed)
 {
-    speed_ = fabs(speed.Value())/SPEED_MAX.Value() * SPEED_MAX_UNITS;
+    speed_ = fabs(speed.Value())/SPEED_UNIT.Value();
 }
 
 Speed_Unit::Speed_Unit(int speed)
 {
     if (abs(speed)<=SPEED_MAX_UNITS)
     {
-        speed_ = speed;
+        speed_ = abs(speed);
     }
     else
     {
@@ -80,5 +80,5 @@ void Speed_Unit::ToByteArray(uint8_t* pos_byte_array)
 
 Speed_Unit::operator RUnits::RPM() const
 {
-    return RUnits::RPM((double)speed_/SPEED_MAX_UNITS * SPEED_MAX.Value());
+    return RUnits::RPM((double)speed_ * SPEED_UNIT.Value());
 }
