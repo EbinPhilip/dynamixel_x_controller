@@ -8,8 +8,8 @@ namespace Dynamixel_X
 {
 
 const int POSITION_MAX_UNITS = 4095;
-const int SPEED_MAX_UNITS = 1023;
-const RUnits::RPM SPEED_MAX = 1023*0.229; //0.229: Dynamixel velocity unit
+const int SPEED_MAX_UNITS = 1023; // 1023 is the maximum possible speed value
+const RUnits::RPM SPEED_UNIT = 0.229; // 0.229: Dynamixel speed unit
 const RUnits::Degrees POSITION_MAX = RUnits::DEGREES_MAX;
 
 class Pos_Unit
