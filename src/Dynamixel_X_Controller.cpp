@@ -318,7 +318,7 @@ void Dynamixel_X_Controller::_enableActuators()
         }
         catch(const std::exception& e)
         {
-            ROS_ERROR("%s: enable failed! Reason:%s", controller_name_, e.what());
+            ROS_ERROR("%s: enable failed! Reason:%s", controller_name_.c_str(), e.what());
             stop_flag_ = true;
         }
         
