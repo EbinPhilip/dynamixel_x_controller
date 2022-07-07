@@ -277,7 +277,7 @@ void Dynamixel_X_Controller::_checkResponse(Actuator_Properties_Ptr actuator, in
 
     if (dxl_error || comm_result)
     {
-        error_status_ = error_status_ || _handleHardwareError(actuator, error);
+        error_status_ = _handleHardwareError(actuator, error) || error_status_;
         stop_flag_ = error_status_;
         error_description_ += error + "\n";
     }
