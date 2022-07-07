@@ -55,21 +55,21 @@ void Dynamixel_X_Controller::addServo(Actuator_Properties_Ptr actuator)
 {
     uint16_t dxl_model_number;
     uint8_t dxl_error;
-    _handleErrorResponse(packet_handler_->ping(port_handler_.get(),
+    _handleErrorResponse(actuator, packet_handler_->ping(port_handler_.get(),
                                             actuator->servo_id, &dxl_model_number, &dxl_error),
                                             dxl_error);
     Pos_Unit ccw_limit = RUnits::Degrees(actuator->ccw_limit_deg.Value() + actuator->zero_deg.Value());
     Pos_Unit cw_limit = RUnits::Degrees(actuator->cw_limit_deg.Value() + actuator->zero_deg.Value());
 
-    _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+    _handleErrorResponse(actuator, packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, TORQUE_ENABLE_ADDRESS,
                                             0, &dxl_error),
                                             dxl_error);
-    _handleErrorResponse(packet_handler_->write4ByteTxRx(port_handler_.get(),
+    _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, MAX_POSITION_LIMIT_ADDRESS,
                                             ccw_limit.Value(), &dxl_error),
                                             dxl_error);
-    _handleErrorResponse(packet_handler_->write4ByteTxRx(port_handler_.get(),
+    _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, MIN_POSITION_LIMIT_ADDRESS,
                                             cw_limit.Value(), &dxl_error),
                                             dxl_error);
@@ -91,7 +91,7 @@ void Dynamixel_X_Controller::readState()
         com_error_count_++;
         if (com_error_count_ >= 3)
         {
-            error_description_ = packet_handler_->getTxRxResult(com_result);
+            error_description_ += std::string(packet_handler_->getTxRxResult(com_result)) + "\n";
             stop_flag_ = true;
             error_status_ = true;
         }
@@ -107,7 +107,7 @@ void Dynamixel_X_Controller::readState()
         uint8_t dxl_error = 0;
         if (sync_read_.getError(servo.second->servo_id, &dxl_error))
         {
-            error_description_ = packet_handler_->getRxPacketError(dxl_error);
+            error_description_ += std::string(packet_handler_->getRxPacketError(dxl_error)) + "\n";
             stop_flag_ = true;
             error_status_ = true;
             return;
@@ -117,7 +117,7 @@ void Dynamixel_X_Controller::readState()
             servo.second->bad_response_count++;
             if (servo.second->bad_response_count >= 3)
             {
-                error_description_ = servo.second->actuator_type+std::to_string(servo.second->servo_id)+": sync read failed!";
+                error_description_ += servo.first+": sync read failed!\n";
                 stop_flag_ = true;
                 error_status_ = true;
                 return;
@@ -200,29 +200,30 @@ void Dynamixel_X_Controller::enableActuators()
 
 void Dynamixel_X_Controller::disableActuators()
 {
-    try
+    for (auto& servo : servo_map_)
     {
-        for (auto& servo : servo_map_)
+        try
         {
+       
             uint8_t dxl_error = 0;
-            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+            _handleErrorResponse(servo.second, packet_handler_->write1ByteTxRx(port_handler_.get(),
                                                 servo.second->servo_id, TORQUE_ENABLE_ADDRESS,
                                                 0, &dxl_error),
                                                 dxl_error);
-            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+            _handleErrorResponse(servo.second, packet_handler_->write1ByteTxRx(port_handler_.get(),
                                                 servo.second->servo_id, LED_ADDRESS,
                                                 0, &dxl_error),
                                                 dxl_error);
         }
-    }
-    catch (std::exception& e)
-    {
-        std::string error_msg = e.what();
-        ROS_ERROR("%s", error_msg.c_str());
-    }
-    catch (...)
-    {
-        ROS_ERROR("%s: unexpected error, disable failed", controller_name_.c_str());
+        catch (std::exception& e)
+        {
+            std::string error_msg = e.what();
+            ROS_ERROR("%s: %s -> disable failed! Reason: %s", controller_name_.c_str(), servo.first.c_str(), error_msg.c_str());
+        }
+        catch (...)
+        {
+            ROS_ERROR("%s: %s -> unexpected error, disable failed", controller_name_.c_str(), servo.first.c_str());
+        }
     }
     
     actuator_enabled_status_ = false;
@@ -232,7 +233,7 @@ bool Dynamixel_X_Controller::getErrorDetails(std::string& error_msg)
 {
     if (error_status_)
     {
-        error_msg = error_description_;
+        error_msg += "\n" + error_description_;
     }
     return error_status_;
 }
@@ -258,7 +259,7 @@ void Dynamixel_X_Controller::getActuatorNames(std::vector<std::string>& names)
     }
 }
 
-void Dynamixel_X_Controller::_checkResponse(int comm_result, uint8_t& dxl_error, bool throw_exception)
+void Dynamixel_X_Controller::_checkResponse(Actuator_Properties_Ptr actuator, int comm_result, uint8_t& dxl_error, bool throw_exception)
 {
     std::string error;
     if (comm_result != COMM_SUCCESS)
@@ -273,6 +274,14 @@ void Dynamixel_X_Controller::_checkResponse(int comm_result, uint8_t& dxl_error,
     {
         return;
     }
+
+    if (dxl_error || comm_result)
+    {
+        error_status_ = error_status_ || _handleHardwareError(actuator, error);
+        stop_flag_ = error_status_;
+        error_description_ += error + "\n";
+    }
+
     dxl_error = 0;
     if (throw_exception)
     {
@@ -280,9 +289,9 @@ void Dynamixel_X_Controller::_checkResponse(int comm_result, uint8_t& dxl_error,
     }
 }
 
-void Dynamixel_X_Controller::_handleErrorResponse(int comm_result, uint8_t& dxl_error)
+void Dynamixel_X_Controller::_handleErrorResponse(Actuator_Properties_Ptr actuator, int comm_result, uint8_t& dxl_error)
 {
-    return _checkResponse(comm_result, dxl_error, true);
+    return _checkResponse(actuator, comm_result, dxl_error, true);
 }
 
 void Dynamixel_X_Controller::_enableActuators()
@@ -297,11 +306,11 @@ void Dynamixel_X_Controller::_enableActuators()
         uint8_t dxl_error = 0;
         try
         {
-            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+            _handleErrorResponse(servo.second, packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             servo.second->servo_id, TORQUE_ENABLE_ADDRESS,
                                             1, &dxl_error),
                                             dxl_error);
-            _handleErrorResponse(packet_handler_->write1ByteTxRx(port_handler_.get(),
+            _handleErrorResponse(servo.second, packet_handler_->write1ByteTxRx(port_handler_.get(),
                                             servo.second->servo_id, LED_ADDRESS,
                                             1, &dxl_error),
                                             dxl_error);
@@ -315,3 +324,52 @@ void Dynamixel_X_Controller::_enableActuators()
         
     }
 }
+
+bool Dynamixel_X_Controller::_handleHardwareError(Actuator_Properties_Ptr actuator, std::string& error_msg)
+{
+    uint8_t status = 0;
+    packet_handler_->read1ByteTxRx(port_handler_.get(), actuator->servo_id, HARDWARE_ERROR_STATUS, &status);
+
+    if (!status)
+    {
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    if (status & 1)
+    {
+        errors.push_back("Input Voltage Error");
+    }
+    if (status>>2 & 1)
+    {
+        errors.push_back("Overheating Error");
+    }
+    if (status>>3 & 1)
+    {
+        errors.push_back("Motor Encoder Error");
+    }
+    if (status>>4 & 1)
+    {
+        errors.push_back("Electrical Shock Error");
+    }
+    if (status>>5 & 1)
+    {
+        errors.push_back("Overload Error");
+    }
+
+    error_msg += "\n" + actuator->actuator_name + ":";
+    for(int i = 0; i<errors.size(); ++i)
+    {
+        if (i == 0)
+        {
+            error_msg += errors[0];
+        }
+        else
+        {
+            error_msg += ", " + errors[0];
+        }
+    }
+
+    return true;
+}
+

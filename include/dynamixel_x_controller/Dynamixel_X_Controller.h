@@ -20,6 +20,7 @@ const int MIN_POSITION_LIMIT_ADDRESS = 52;
 const int HOMING_OFFSET_ADDRESS = 20;
 const int TORQUE_ENABLE_ADDRESS = 64;
 const int LED_ADDRESS = 65;
+const int HARDWARE_ERROR_STATUS = 70;
 const int PROFILE_ACCELERATION = 108;
 const int PRESENT_LOAD_ADDRESS = 126;
 const int PRESENT_VELOCITY_ADDRESS = 128;
@@ -48,9 +49,10 @@ public:
     virtual void getActuatorNames(std::vector<std::string>&) override;
 
 protected:
-    void _checkResponse(int comm_result, uint8_t& dxl_error, bool throw_exception=false);
-    void _handleErrorResponse(int comm_result, uint8_t& dxl_error);
+    void _checkResponse(Actuator_Properties_Ptr actuator, int comm_result, uint8_t& dxl_error, bool throw_exception=false);
+    void _handleErrorResponse(Actuator_Properties_Ptr actuator, int comm_result, uint8_t& dxl_error);
     void _enableActuators();
+    bool _handleHardwareError(Actuator_Properties_Ptr actuator, std::string& error_msg);
 
     std::string controller_name_;
     std::string serial_port_;
