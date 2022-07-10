@@ -65,14 +65,32 @@ void Dynamixel_X_Controller::addServo(Actuator_Properties_Ptr actuator)
                                             actuator->servo_id, TORQUE_ENABLE_ADDRESS,
                                             0, &dxl_error),
                                             dxl_error);
-    _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
+    
+    // test and write ccw limit to EEPROM
+    uint32_t current_ccw_limit;
+    _handleErrorResponse(actuator, packet_handler_->read4ByteTxRx(port_handler_.get(),
+                                            actuator->servo_id, MAX_POSITION_LIMIT_ADDRESS,
+                                            &current_ccw_limit, &dxl_error), dxl_error);
+    if (current_ccw_limit != ccw_limit.Value())
+    {
+        _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, MAX_POSITION_LIMIT_ADDRESS,
                                             ccw_limit.Value(), &dxl_error),
                                             dxl_error);
-    _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
+    }
+
+    // test and write ccw limit to EEPROM
+    uint32_t current_cw_limit;
+    _handleErrorResponse(actuator, packet_handler_->read4ByteTxRx(port_handler_.get(),
+                                            actuator->servo_id, MIN_POSITION_LIMIT_ADDRESS,
+                                            &current_cw_limit, &dxl_error), dxl_error);
+    if (current_cw_limit != cw_limit.Value())
+    {
+        _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
                                             actuator->servo_id, MIN_POSITION_LIMIT_ADDRESS,
                                             cw_limit.Value(), &dxl_error),
                                             dxl_error);
+    }
     
     servo_map_.insert(std::make_pair(actuator->actuator_name, actuator));
     sync_read_.addParam(actuator->servo_id);
