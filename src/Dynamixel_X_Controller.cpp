@@ -91,6 +91,11 @@ void Dynamixel_X_Controller::addServo(Actuator_Properties_Ptr actuator)
                                             cw_limit.Value(), &dxl_error),
                                             dxl_error);
     }
+
+    _handleErrorResponse(actuator, packet_handler_->write4ByteTxRx(port_handler_.get(),
+                                            actuator->servo_id, PROFILE_ACCELERATION,
+                                            actuator->profile_acceleration, &dxl_error),
+                                            dxl_error);                                      
     
     servo_map_.insert(std::make_pair(actuator->actuator_name, actuator));
     sync_read_.addParam(actuator->servo_id);

@@ -8,6 +8,7 @@ actuators:
         zero_deg: 0.0
         cw_limit_deg: 0.0
         ccw_limit_deg: 360.0
+        profile_acceleration: 1
         max_effort_value: 1000.0
 
 controllers:

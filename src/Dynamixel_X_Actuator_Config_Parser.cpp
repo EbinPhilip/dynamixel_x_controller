@@ -46,6 +46,14 @@ void Dynamixel_X_Actuator_Config_Parser::parseConfig(XmlRpc::XmlRpcValue& config
         {
             actuator->max_effort_value = fabs(static_cast<double>(it->second["max_effort_value"]));
         }
+        if (it->second.hasMember("profile_acceleration"))
+        {
+            actuator->profile_acceleration = abs(static_cast<int>(it->second["profile_acceleration"]));
+        }
+        else
+        {
+            actuator->profile_acceleration = 0;
+        }
 
         auto controller_it = controller_map->find(actuator_controller);
         if (controller_it == controller_map->end())

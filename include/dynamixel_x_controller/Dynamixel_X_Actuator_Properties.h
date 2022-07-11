@@ -28,6 +28,7 @@ struct Dynamixel_X_Actuator_Properties : public Actuator_Properties
     RUnits::Degrees cw_limit_deg;
     RUnits::Degrees ccw_limit_deg;
     RUnits::Degrees zero_deg;
+    unsigned int profile_acceleration;
     double max_effort_value;
 
     uint8_t bad_response_count;
