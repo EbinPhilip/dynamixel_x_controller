@@ -1,1 +1,2 @@
-# dynamixel_x_controller
+# Dynamixel X Controller
+Implements the Actuator and Actuator Controller interfaces from [Configurable Control Hardware](https://github.com/EbinPhilip/configurable_control_hw/), for [Dynamixel X Servos](https://emanual.robotis.com/docs/en/dxl/x/).
