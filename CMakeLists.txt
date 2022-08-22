@@ -144,10 +144,10 @@ target_link_libraries(dynamixel_x_units_example
   ${catkin_LIBRARIES}
 )
 
-add_executable(dynamixel_x_controller_example
-  src/dynamixel_x_controller_example.cpp
+add_executable(dynamixel_x_controller_example_deprecated
+  src/dynamixel_x_controller_example_deprecated.cpp
 )
-target_link_libraries(dynamixel_x_controller_example
+target_link_libraries(dynamixel_x_controller_example_deprecated
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
