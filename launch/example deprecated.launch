@@ -4,9 +4,7 @@
     <rosparam file="$(find dynamixel_x_controller)/config/transmissions.yaml" command="load" ns="dynamixel_x_controller_example/"/>
     <rosparam file="$(find dynamixel_x_controller)/config/controllers.yaml" command="load"/>
 
-    <node name="dynamixel_x_controller_example" pkg="configurable_control_hw" type="Node" output="screen">
-        <param name="loop_rate_hz" type="double" value="10.0" />
-    </node>
+    <node name="dynamixel_x_controller_example" pkg="dynamixel_x_controller" type="dynamixel_x_controller_example_deprecated" output="screen"/>
 
     <node
         name="controller_spawner"
